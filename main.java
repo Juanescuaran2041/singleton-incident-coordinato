@@ -82,7 +82,7 @@ final class RansomwareIncidentCoordinator implements IncidentResponseCoordinator
 }
 
 // Demostracion
-class Demo {
+class main {
     public static void main(String[] args) {
         // Simulating three independent detection modules, each getting
         // a reference to the SAME coordinator instance.
