@@ -3,7 +3,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public interface IncidentResponseCoordinator {
+interface IncidentResponseCoordinator {
 
     /** Registers a host as infected. */
     void registerInfectedHost(String hostId);
