@@ -5,19 +5,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public interface IncidentResponseCoordinator {
 
-    /** Registers a host */
+    /** Registers a host as infected. */
     void registerInfectedHost(String hostId);
 
-    /** Retruna true si el host ha sido afectado */
+    /** Returns true if the host has already been registered as infected. */
     boolean isHostRegistered(String hostId);
 
-    /** Retorna el numero total de hosts que han sido afectados */
+    /** Returns the total number of distinct infected hosts registered so far. */
     int getInfectedHostCount();
 
-    /** Interruptor kill para atender el incidente. */
+    /** Triggers the global kill-switch to contain the incident. */
     void activateKillSwitch();
 
-    /** Retorna trye si el kill switch ha sido activado*/
+    /** Returns true once the kill-switch has been activated. */
     boolean isKillSwitchActivated();
 }
 
@@ -36,37 +36,40 @@ final class RansomwareIncidentCoordinator implements IncidentResponseCoordinator
         this.infectedHosts = Collections.synchronizedSet(new HashSet<>());
         this.killSwitchActive = new AtomicBoolean(false);
     }
-    // Metodo estatico de tipo RansomwareIncidentCoordiantor
+
+    // Metodo estatico de tipo RansomwareIncidentCoordinator
     public static RansomwareIncidentCoordinator getInstance() {
         return Holder.INSTANCE;
     }
 
-    //Registrar host infectado
+    // Registrar host infectado
     @Override
     public void registerInfectedHost(String hostId) {
         boolean isNew = infectedHosts.add(hostId);
         if (isNew) {
-            System.out.println("Se ha registrado un nuevo host infectado" + hostId);
-        }
-    }
-    // Comprobar si hay un host registrado
-    @Override
-    public void isHostRegistered (String hostid){
-        if infectedHosts.contains(hostid){
-            return true;
+            System.out.println("Se ha registrado un nuevo host infectado: " + hostId);
+            // Umbral de ejemplo: si hay 3 o mas hosts infectados, activar el kill-switch.
+            if (infectedHosts.size() >= 3 && !killSwitchActive.get()) {
+                activateKillSwitch();
+            }
         }
     }
 
-    //Contar la cantidad de hosts
+    // Comprobar si hay un host registrado
+    @Override
+    public boolean isHostRegistered(String hostId) {
+        return infectedHosts.contains(hostId);
+    }
+
+    // Contar la cantidad de hosts
     @Override
     public int getInfectedHostCount() {
         return infectedHosts.size();
     }
 
-    //Activiar el killswitch
+    // Activar el kill switch
     @Override
     public void activateKillSwitch() {
-.
         if (killSwitchActive.compareAndSet(false, true)) {
             System.out.println("[KILL-SWITCH] Activated. Isolating affected hosts...");
         }
