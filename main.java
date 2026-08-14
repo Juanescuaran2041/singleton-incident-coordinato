@@ -40,3 +40,60 @@ final class RansomwareIncidentCoordinator implements IncidentResponseCoordinator
     public static RansomwareIncidentCoordinator getInstance() {
         return Holder.INSTANCE;
     }
+
+    //Registrar host infectado
+    @Override
+    public void registerInfectedHost(String hostId) {
+        boolean isNew = infectedHosts.add(hostId);
+        if (isNew) {
+            System.out.println("Se ha registrado un nuevo host infectado" + hostId);
+        }
+    }
+    // Comprobar si hay un host registrado
+    @Override
+    public void isHostRegistered (String hostid){
+        if infectedHosts.contains(hostid){
+            return true;
+        }
+    }
+
+    //Contar la cantidad de hosts
+    @Override
+    public int getInfectedHostCount() {
+        return infectedHosts.size();
+    }
+
+    //Activiar el killswitch
+    @Override
+    public void activateKillSwitch() {
+.
+        if (killSwitchActive.compareAndSet(false, true)) {
+            System.out.println("[KILL-SWITCH] Activated. Isolating affected hosts...");
+        }
+    }
+
+    @Override
+    public boolean isKillSwitchActivated() {
+        return killSwitchActive.get();
+    }
+}
+
+// Demostracion
+class Demo {
+    public static void main(String[] args) {
+        // Simulating three independent detection modules, each getting
+        // a reference to the SAME coordinator instance.
+        IncidentResponseCoordinator fsWatcher = RansomwareIncidentCoordinator.getInstance();
+        IncidentResponseCoordinator netSensor = RansomwareIncidentCoordinator.getInstance();
+        IncidentResponseCoordinator procMonitor = RansomwareIncidentCoordinator.getInstance();
+
+        fsWatcher.registerInfectedHost("HOST-01");
+        netSensor.registerInfectedHost("HOST-02");
+        procMonitor.registerInfectedHost("HOST-01"); // duplicate, ignored
+        procMonitor.registerInfectedHost("HOST-03"); // triggers threshold -> kill-switch
+
+        System.out.println("Same instance? " + (fsWatcher == netSensor)); // true
+        System.out.println("Infected hosts: " + fsWatcher.getInfectedHostCount());
+        System.out.println("Kill-switch active: " + fsWatcher.isKillSwitchActivated());
+    }
+}
